@@ -8,25 +8,26 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"github.com/gamexg/goio"
 )
+
 
 type zipWrite struct {
 	zipName  string
 	zipType  string // 压缩类型
 	zipLevel int    // 压缩级别
 	rw       io.Writer
+	rf       goio.Flusher
 	ow       io.Writer
-	of       Flusher
+	of       goio.Flusher
 	oc       io.Closer
-}
-
-type Flusher interface {
-	Flush() error
+	atuoFlush bool
 }
 
 // 注意，生成的对象非线程安全
 // 引用库的话：不再使用时应该调用 Close 方法，Close 只是关闭 压缩流，不会关闭低层流。
-func NewZipWrite(w io.Writer, name string) (io.WriteCloser, error) {
+// atuoFlush 每次 write 后是否自动 Flush (会同时尝试调用 w.Flush())
+func NewZipWrite(w io.Writer, name string,atuoFlush bool) (goio.WriteFlushCloser, error) {
 	ss := strings.SplitN(name, ":", 2)
 
 	zipType := strings.TrimSpace(ss[0])
@@ -47,11 +48,18 @@ func NewZipWrite(w io.Writer, name string) (io.WriteCloser, error) {
 		return nil, fmt.Errorf("压缩参数错误，%v 无法转换成为数字，%v", zipArgs, err)
 	}
 
+	var rf goio.Flusher
+	if atuoFlush {
+		rf, _ = w.(goio.Flusher)
+	}
+
 	return &zipWrite{
 		zipName:  name,
 		zipType:  zipType,
 		zipLevel: ZipLevel,
 		rw:       w,
+		rf:rf,
+		atuoFlush:atuoFlush,
 	}, nil
 }
 func (z *zipWrite) init() error {
@@ -102,10 +110,28 @@ func (z *zipWrite) Write(b []byte) (int, error) {
 		return n, err
 	}
 
-	if z.of != nil {
-		return n, z.of.Flush()
+	if z.atuoFlush==true{
+		return n,z.Flush()
 	}
+
 	return n, nil
+}
+
+func (z *zipWrite)Flush() error{
+	if z.of != nil {
+		err:= z.of.Flush()
+		if err!=nil{
+			return err
+		}
+	}
+
+	if z.rf!=nil{
+		err:=z.rf.Flush()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (z *zipWrite) Close() error {
@@ -115,8 +141,16 @@ func (z *zipWrite) Close() error {
 		}
 	}
 
+	// 由于部分压缩存在结束标记，所以先关闭压缩，后刷新底层缓冲区。
 	if z.oc != nil {
 		return z.oc.Close()
+	}
+
+	if z.rf!=nil {
+		err := z.rf.Flush()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

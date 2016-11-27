@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"github.com/gamexg/goio"
 )
 
 /*
@@ -66,7 +67,7 @@ func NewCipherRead(key string, r io.Reader) (*CipherRead, error) {
 }
 
 // 读取加密信息
-// 超时会破坏加密环境。
+// 第一次读 vi 超时会破坏加密环境。
 func (c *CipherRead) Read(dst []byte) (n int, err error) {
 	if c.reader == nil {
 		c.iv = make([]byte, c.block.BlockSize())
@@ -112,8 +113,8 @@ func NewCipherWrite(key string, w io.Writer) (*CipherWrite, error) {
 	return &c, nil
 }
 
-// 读取加密信息
-// 超时会破坏加密环境。
+// 写加密信息
+// 写 vi 错误会破坏加密环境。
 func (c *CipherWrite) Write(dst []byte) (n int, err error) {
 	if c.writer == nil {
 		c.stream = cipher.NewOFB(c.block, c.iv[:])
@@ -127,6 +128,12 @@ func (c *CipherWrite) Write(dst []byte) (n int, err error) {
 	return c.writer.Write(dst)
 }
 
+func (c *CipherWrite)Flush(){
+	f,_:=c.rw.(goio.Flusher)
+	if f != nil {
+		f.Flush()
+	}
+}
 func CEn(key []byte, sKey string) error {
 	if len(key) != 32 || len(sKey) != 16*2 {
 		return fmt.Errorf("key或skey长度错误。")

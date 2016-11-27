@@ -7,6 +7,36 @@ import (
 	"testing"
 )
 
+type A int
+
+func (a A)Write(buf[]byte)(int,error)  {
+	fmt.Println(len(buf))
+	return len(buf),nil
+}
+
+/*
+输出结果：
+16
+1048576
+
+// 实际看源码，可以看到内部是创建了一个和输入相同的缓冲区，
+// 然后将加密数据保存到这个缓冲区，之后直接写的这个缓冲区。
+// 所以尺寸注定是和输入一致。
+// 不过还有另外一个独立输出，即首次写时的随机 VI
+*/
+func TestSize(t*testing.T){
+	d:=make([]byte,1024*1024)
+	rand.Read(d)
+
+		a :=A(0)
+		zw,err:=NewCipherWrite("key",a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		zw.Write(d)
+		zw.Flush()
+}
+
 func TestA(t *testing.T) {
 	key := "sdygvetse"
 	buf := bytes.Buffer{}
