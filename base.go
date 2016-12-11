@@ -18,5 +18,5 @@ func (nopCloser) Close() error { return nil }
 
 
 func NopCloser(w io.Writer) io.WriteCloser{
-	return NopCloser(w)
+	return nopCloser{w}
 }
