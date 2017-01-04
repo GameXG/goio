@@ -1,6 +1,7 @@
 package zip
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -9,10 +10,9 @@ import (
 	"sync"
 	"testing"
 	"time"
-	"bufio"
 )
 
-var testHtml =`
+var testHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1330,9 +1330,9 @@ vjTrack("");
 
 type A int
 
-func (a A)Write(buf[]byte)(int,error)  {
+func (a A) Write(buf []byte) (int, error) {
 	fmt.Println(len(buf))
-	return len(buf),nil
+	return len(buf), nil
 }
 
 /*
@@ -1547,15 +1547,15 @@ deflate:9
 
 
 */
-func TestSize(t*testing.T){
+func TestSize(t *testing.T) {
 	zipTypes := []string{"zlib", "gzip", "deflate", "zlib:9", "gzip:9", "deflate:9"}
 
-	f:=func(d []byte){
-		for _,zipType:=range zipTypes{
+	f := func(d []byte) {
+		for _, zipType := range zipTypes {
 			fmt.Println(zipType)
 
-			a :=A(0)
-			zw,err:=NewZipWrite(a,zipType,true)
+			a := A(0)
+			zw, err := NewZipWrite(a, zipType, true)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1563,15 +1563,16 @@ func TestSize(t*testing.T){
 		}
 	}
 
-	d:=make([]byte,100*1024)
+	d := make([]byte, 100*1024)
 	rand.Read(d)
 	fmt.Println("随机数据：")
 	f(d)
 
 	fmt.Println("标准html：")
-	d=[]byte(testHtml)
+	d = []byte(testHtml)
 	f(d)
 }
+
 /*
 随机数据：
 zlib
@@ -1648,16 +1649,16 @@ deflate:9
 14520
 4972
 */
-func TestSize2(t*testing.T){
+func TestSize2(t *testing.T) {
 	zipTypes := []string{"zlib", "gzip", "deflate", "zlib:9", "gzip:9", "deflate:9"}
 
-	f:=func(d []byte){
-		for _,zipType:=range zipTypes{
+	f := func(d []byte) {
+		for _, zipType := range zipTypes {
 			fmt.Println(zipType)
 
-			a :=A(0)
-			b:=bufio.NewWriterSize(a,10*1452)
-			zw,err:=NewZipWrite(b,zipType,true)
+			a := A(0)
+			b := bufio.NewWriterSize(a, 10*1452)
+			zw, err := NewZipWrite(b, zipType, true)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1666,13 +1667,13 @@ func TestSize2(t*testing.T){
 		}
 	}
 
-	d:=make([]byte,100*1024)
+	d := make([]byte, 100*1024)
 	rand.Read(d)
 	fmt.Println("随机数据：")
 	f(d)
 
 	fmt.Println("标准html：")
-	d=[]byte(testHtml)
+	d = []byte(testHtml)
 	f(d)
 }
 
@@ -1730,7 +1731,7 @@ func TestNonBlocking(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer c.Close()
-		w, err := NewZipWrite(c, zName,true)
+		w, err := NewZipWrite(c, zName, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1769,7 +1770,7 @@ func TestBlocking(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		zw, err := NewZipWrite(w, zName,true)
+		zw, err := NewZipWrite(w, zName, true)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -9,9 +9,9 @@ import (
 
 type A int
 
-func (a A)Write(buf[]byte)(int,error)  {
+func (a A) Write(buf []byte) (int, error) {
 	fmt.Println(len(buf))
-	return len(buf),nil
+	return len(buf), nil
 }
 
 /*
@@ -24,17 +24,17 @@ func (a A)Write(buf[]byte)(int,error)  {
 // 所以尺寸注定是和输入一致。
 // 不过还有另外一个独立输出，即首次写时的随机 VI
 */
-func TestSize(t*testing.T){
-	d:=make([]byte,1024*1024)
+func TestSize(t *testing.T) {
+	d := make([]byte, 1024*1024)
 	rand.Read(d)
 
-		a :=A(0)
-		zw,err:=NewCipherWrite("key",a)
-		if err != nil {
-			t.Fatal(err)
-		}
-		zw.Write(d)
-		zw.Flush()
+	a := A(0)
+	zw, err := NewCipherWrite("key", a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	zw.Write(d)
+	zw.Flush()
 }
 
 func TestA(t *testing.T) {

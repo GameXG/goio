@@ -5,29 +5,28 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"fmt"
+	"github.com/gamexg/goio"
 	"io"
 	"strconv"
 	"strings"
-	"github.com/gamexg/goio"
 )
 
-
 type zipWrite struct {
-	zipName  string
-	zipType  string // 压缩类型
-	zipLevel int    // 压缩级别
-	rw       io.Writer
-	rf       goio.Flusher
-	ow       io.Writer
-	of       goio.Flusher
-	oc       io.Closer
+	zipName   string
+	zipType   string // 压缩类型
+	zipLevel  int    // 压缩级别
+	rw        io.Writer
+	rf        goio.Flusher
+	ow        io.Writer
+	of        goio.Flusher
+	oc        io.Closer
 	atuoFlush bool
 }
 
 // 注意，生成的对象非线程安全
 // 引用库的话：不再使用时应该调用 Close 方法，Close 只是关闭 压缩流，不会关闭低层流。
 // atuoFlush 每次 write 后是否自动 Flush (会同时尝试调用 w.Flush())
-func NewZipWrite(w io.Writer, name string,atuoFlush bool) (goio.WriteFlushCloser, error) {
+func NewZipWrite(w io.Writer, name string, atuoFlush bool) (goio.WriteFlushCloser, error) {
 	ss := strings.SplitN(name, ":", 2)
 
 	zipType := strings.TrimSpace(ss[0])
@@ -54,12 +53,12 @@ func NewZipWrite(w io.Writer, name string,atuoFlush bool) (goio.WriteFlushCloser
 	}
 
 	return &zipWrite{
-		zipName:  name,
-		zipType:  zipType,
-		zipLevel: ZipLevel,
-		rw:       w,
-		rf:rf,
-		atuoFlush:atuoFlush,
+		zipName:   name,
+		zipType:   zipType,
+		zipLevel:  ZipLevel,
+		rw:        w,
+		rf:        rf,
+		atuoFlush: atuoFlush,
 	}, nil
 }
 func (z *zipWrite) init() error {
@@ -110,23 +109,23 @@ func (z *zipWrite) Write(b []byte) (int, error) {
 		return n, err
 	}
 
-	if z.atuoFlush==true{
-		return n,z.Flush()
+	if z.atuoFlush == true {
+		return n, z.Flush()
 	}
 
 	return n, nil
 }
 
-func (z *zipWrite)Flush() error{
+func (z *zipWrite) Flush() error {
 	if z.of != nil {
-		err:= z.of.Flush()
-		if err!=nil{
+		err := z.of.Flush()
+		if err != nil {
 			return err
 		}
 	}
 
-	if z.rf!=nil{
-		err:=z.rf.Flush()
+	if z.rf != nil {
+		err := z.rf.Flush()
 		if err != nil {
 			return err
 		}
@@ -146,7 +145,7 @@ func (z *zipWrite) Close() error {
 		return z.oc.Close()
 	}
 
-	if z.rf!=nil {
+	if z.rf != nil {
 		err := z.rf.Flush()
 		if err != nil {
 			return err

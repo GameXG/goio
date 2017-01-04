@@ -6,9 +6,9 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"fmt"
+	"github.com/gamexg/goio"
 	"io"
 	"strconv"
-	"github.com/gamexg/goio"
 )
 
 /*
@@ -128,8 +128,8 @@ func (c *CipherWrite) Write(dst []byte) (n int, err error) {
 	return c.writer.Write(dst)
 }
 
-func (c *CipherWrite)Flush(){
-	f,_:=c.rw.(goio.Flusher)
+func (c *CipherWrite) Flush() {
+	f, _ := c.rw.(goio.Flusher)
 	if f != nil {
 		f.Flush()
 	}

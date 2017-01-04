@@ -22,16 +22,16 @@ func NopCloser(w io.Writer) io.WriteCloser {
 	return nopCloser{w}
 }
 
-func WriteAll(w io.Writer, buf []byte) (n int,err error) {
+func WriteAll(w io.Writer, buf []byte) (n int, err error) {
 	b := buf
 	for len(b) != 0 {
-		ln,lerr:=w.Write(b)
+		ln, lerr := w.Write(b)
 
-		n+=ln
+		n += ln
 		b = b[ln:]
 
-		if lerr!=nil{
-			return n,lerr
+		if lerr != nil {
+			return n, lerr
 		}
 	}
 	return
